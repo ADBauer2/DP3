@@ -1,0 +1,80 @@
+---
+title: "DP3 Mini Analysis"
+output: html_document
+date: "2024-05-31"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(readxl)
+```
+
+```{r}
+dp3 <- read.csv("/Users/alexbauer/Documents/DP3/DP3_DATA_2024-04-24_1133.csv")
+dp3_1 <- read_excel("/Users/alexbauer/Documents/DP3/momi variables for 1st set clean.xlsx", "variables of interest")
+dp3_2 <- read_excel("/Users/alexbauer/Documents/DP3/momi variables for 2nd set clean.xlsx", "variables of interest")
+```
+
+```{r}
+glimpse(dp3)
+glimpse(dp3_1)
+glimpse(dp3_2)
+
+```
+
+
+```{r}
+dp3_2$MENDDIAB[dp3_2$MENDDIAB == 'yes'] = 1
+dp3_2$MENDDIAB[dp3_2$MENDDIAB == 'no'] = 0
+dp3_2$MENDDIAB <- as.numeric(dp3_2$MENDDIAB)
+dp3_2$`FDELTYPE vaginal 1, cs 2`[dp3_2$`FDELTYPE vaginal 1, cs 2` == '1;forceps'] = 1
+dp3_2$`FDELTYPE vaginal 1, cs 2` <- as.numeric(dp3_2$`FDELTYPE vaginal 1, cs 2`)
+dp3_2$APGARSCORE1MINUTE <- as.numeric(dp3_2$APGARSCORE1MINUTE)
+dp3_2$APGARSCORE5MINUTE <- as.numeric(dp3_2$APGARSCORE5MINUTE)
+```
+
+```{r}
+dp3_f <- bind_rows(dp3_1, dp3_2)
+dp3_f$ProtocolNumber
+```
+
+```{r}
+sum(dp3_f$ProtocolNumber %in% dp3$record_id)
+dp3<- dp3[dp3$record_id %in% dp3_f$ProtocolNumber, ]
+```
+
+```{r}
+dp3_fb <- dp3 %>% select(contains("record_id") | contains("redcap_event_name") | contains("gest_age_enroll") | contains("fitbit_data_date") | contains("fb_act_summ") | contains("veryactiveminutes") | contains("fb_sleep") )
+```
+
+```{r}
+dp3_fb_steps <- dp3_fb %>% select(record_id, redcap_event_name, gest_age_enroll, fitbit_data_date, fb_act_summ_steps, fb_act_summ_totaldistances, fb_act_summ_veryactiveminutes)
+```
+
+```{r}
+dp3_fb_steps <- dp3_fb_steps %>% filter(redcap_event_name == "general_arm_1"| redcap_event_name == "enrollment_513_w_arm_1" | redcap_event_name == "fitbit_data_arm_1")
+
+dp3_fb_steps$redcap_event_name <- as.factor(dp3_fb_steps$redcap_event_name)
+order <- c("general_arm_1", "enrollment_513_w_arm_1", "fitbit_data_arm_1")
+
+```
+
+```{r}
+working <- dp3_fb_steps %>% group_by(record_id) %>% arrange(factor(redcap_event_name, levels = order), .by_group = TRUE) %>% fill(gest_age_enroll) %>% ungroup()
+```
+
+```{r}
+x <- dp3_f %>% select(c('comp y/n', 'ProtocolNumber'))
+working <- merge(working, x, by.x = 'record_id', by.y = 'ProtocolNumber')
+```
+
+
+```{r}
+working <- working %>% group_by(record_id) %>%  mutate(timepoint = row_number()-2 + round(gest_age_enroll*7))
+```
+
+```{r}
+write.csv(working, "DP3_playset.csv")
+```
+
