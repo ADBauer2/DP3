@@ -75,10 +75,10 @@ test_dist = test_dist(:, 1:365);
 
 %% Prep Gaussian smoothing
 
-sigma_w  = 1; %day
-binsize = 2;
+sigma_w  = 3; %day
+binsize = 3;
 
-tau = -5*sigma_w : binsize : 5*sigma_w;
+tau = -7*sigma_w : binsize : 7*sigma_w;
 w = binsize* (1/(sqrt(2*pi)*sigma_w)) * exp(-tau.^2/(2*sigma_w^2));
 %% Steps
 control_smooth_s = [];
