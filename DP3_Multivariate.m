@@ -1,6 +1,6 @@
 %% Load Data
 
-data = readtable("DP3_playset.csv");
+data = readtable("C:\Users\alexb\Downloads\DP3_playset.csv");
 
 
 
@@ -353,15 +353,7 @@ ax = gca;
 ax.FontSize = 8;
 
 annotation('textbox', [0.8, 0.45, 0.1, 0.1], 'String', sprintf('Significant Time Point Highlight\nGreen Highlights: Control Steps > Complication Steps\nBlue Highlights: Control Steps < Complication Steps'), 'HorizontalAlignment', 'center', 'FontSize', 12);
-%% ADF Test
 
-function pValues = check_stationarity(group)
-    pValues = zeros(size(group, 1), 1);
-    for i = 1:size(group, 1)
-        [~, pValue] = adftest(group(i, :));
-        pValues(i) = pValue;
-    end
-end
 
 stationarity_ctrl_s = check_stationarity(control_steps);
 stationarity_test_s = check_stationarity(test_steps);
@@ -395,3 +387,13 @@ for i = 1:size(control_dist, 1)
     sim_dist = [sim_dist, dtw(normalize(control_dist(i, :)), normalize(test_dist(i, :)))];
 end
 
+
+%% ADF Test
+
+function pValues = check_stationarity(group)
+    pValues = zeros(size(group, 1), 1);
+    for i = 1:size(group, 1)
+        [~, pValue] = adftest(group(i, :));
+        pValues(i) = pValue;
+    end
+end
