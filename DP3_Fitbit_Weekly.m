@@ -166,8 +166,8 @@ figure(1);
 subplot(2, 1, 1)
 hold on
 plot(timepoints, test_smooth_s(:, 1:52), Color = [0,0,0,0.5]);
-plot(1:52, mean(test_smooth_s, "all"))
-%ylim([0,25000])
+line(1:52, mean(test_smooth_s, "all")* ones(1, 52), LineWidth = 3)
+ylim([0,100000])
 xlim([11, 41])
 for i = 1:numel(significant_time_points(1:52))
     diff = rate_control(i) - rate_test(i);
@@ -203,7 +203,8 @@ ax.FontSize = 8;
 subplot(2, 1, 2)
 hold on
 plot(timepoints, control_smooth_s(:, 1:52), Color = [0,0,0,0.5]);
-%ylim([0,25000])
+line(1:52, mean(control_smooth_s, "all")* ones(1, 52), LineWidth = 3)
+ylim([0,100000])
 xlim([11, 41])
 for i = 1:numel(significant_time_points(1:52))
     diff = rate_control(i) - rate_test(i);
