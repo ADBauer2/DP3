@@ -6,6 +6,12 @@ date: "2024-05-31"
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+```
+```{r setup, include = FALSE}
+install.packages(readlines("requirements.R"))
+```
+```{r setup, include = FALSE}
+library(reshape2)
 library(tidyverse)
 library(readxl)
 ```
