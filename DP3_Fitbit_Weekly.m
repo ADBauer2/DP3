@@ -77,10 +77,158 @@ test_dist = test_dist(:, 1:365);
 
 i = 1;
 count = 1;
-dist_weekly = [];
-
+test_weekly_s = [];
+control_weekly_s = [];
 for n = 7:7:365
-    mean(test_steps(:, i:n), 2, "omitmissing")
+    test_weekly_s = [test_weekly_s, sum(test_steps(:, i:n), 2, "omitmissing")]
+    control_weekly_s = [control_weekly_s, sum(control_steps(:, i:n), 2, "omitmissing")]
     count = count + 1;
-    i = i + n;
+    i = i + 7;
+    disp(n)
+    disp(i)
 end
+
+%% Prep Gaussian smoothing
+
+sigma_w  = 1; %day
+binsize = 1;
+
+tau = -5*sigma_w : binsize : 5*sigma_w;
+w = binsize* (1/(sqrt(2*pi)*sigma_w)) * exp(-tau.^2/(2*sigma_w^2));
+%% Steps
+timepoints = 1:52;
+control_smooth_s = [];
+for entry = 1:length(uniques_control)
+    rate_w = imfilter(control_weekly_s(entry, :), w, 'conv');
+    control_smooth_s = [control_smooth_s;rate_w];
+end
+
+control_psth = sum(control_weekly_s(:, 1:52), 1, 'omitnan')/size(control_weekly_s, 1);
+
+rate_control = imfilter(control_psth, w, 'conv');
+figure(1)
+hold on
+plot(timepoints, control_smooth_s(:, 1:52), color = 'black')
+plot(timepoints, rate_control, color = 'red', LineWidth=3)
+ylabel('Steps (in 10,000s)')
+xlabel('Time (Days)')
+hold off
+
+test_smooth_s = [];
+for entry = 1:length(uniques_test)
+    rate_w = imfilter(test_weekly_s(entry, :), w, 'conv');
+    test_smooth_s = [test_smooth_s;rate_w];
+end
+
+test_psth = sum(test_weekly_s(:, 1:52), 1, 'omitnan')/size(test_weekly_s, 1);
+
+rate_test = imfilter(test_psth, w, 'conv');
+
+%% Comparison of Groups Steps
+
+num_time_points = size(control_weekly_s, 2); % Assuming control_long and test_long have the same number of time points
+
+p_values = zeros(1, num_time_points);
+    
+for i = 1:num_time_points
+    % Extract the data for the current time point
+    control_data = control_weekly_s(:, i);
+    test_data = test_weekly_s(:, i);
+
+    % Remove NaN values and ensure equal length
+    control_data = control_data(~isnan(control_data));
+    test_data = test_data(~isnan(test_data));
+
+    % Perform Welch's ANOVA
+    [~, p_values(i)] = vartest2(control_data, test_data);
+end
+
+figure(3);
+% Assuming p_values is a vector of p-values obtained from statistical analysis
+significance_threshold = 0.05; % Adjust as needed
+
+% Identify significant time points based on the significance threshold
+significant_time_points = p_values < significance_threshold;
+
+% Reshape the binary vector into a matrix for heatmap plotting
+% Assuming num_time_points is the total number of time points
+binary_matrix = reshape(significant_time_points(1, 1:52), [], length(timepoints))';
+
+times = find(binary_matrix == 1);
+
+%times([2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 14, 16, 17, 75, 76, 77, 78, 79, 81, 82, 83, 84, 86, 87, 88, 89 ...
+%    , 91, 92, 93, 94, 96, 97, 98, 99, 101, 102, 103, 104, 106, 107, 108, 109, 111, 112, 113, 114, 116, ...
+ %   117, 118, 119, 121, 122, 123,124, 126, 127, 128, 129, 131, 132, 133, 134, 136, 137, 138, 139]) = [];
+
+
+figure(1);
+%TEST
+subplot(2, 1, 1)
+hold on
+plot(timepoints, test_smooth_s(:, 1:52), Color = [0,0,0,0.5]);
+plot(1:52, mean(test_smooth_s, "all"))
+%ylim([0,25000])
+xlim([11, 41])
+for i = 1:numel(significant_time_points(1:52))
+    diff = rate_control(i) - rate_test(i);
+    if diff > 0 && significant_time_points(i) > 0 
+        col = 'g';
+        x = plot([(i) * significant_time_points(i), (i) * significant_time_points(i)], ylim, '-', 'LineWidth', 3, color = col);
+        x.Color(4) = 0.2;
+    elseif diff < 0 && significant_time_points(i) > 0 
+        col = 'b';
+        x = plot([(i) * significant_time_points(i), (i) * significant_time_points(i)], ylim, '-', 'LineWidth', 3, color = col);
+        x.Color(4) = 0.2;
+    elseif diff == 0 && significant_time_points(i) > 0 
+        col = 'r';
+        x = plot([(i) * significant_time_points(i), (i) * significant_time_points(i)], ylim, '-', 'LineWidth', 3, color = col);
+        x.Color(4) = 0.2;  
+    end  
+end
+plot(timepoints, rate_test, color = 'red', LineWidth=3)
+
+
+ylabel('Steps (in 10,000s)')
+xlabel('Time (Days)')
+hold off
+title('Complication Group');
+ylabel('Steps (in 10,000s)')
+xlabel('Time (Weeks)')
+% xticks(times)
+xtickangle(90)
+ax = gca;
+ax.FontSize = 8;
+
+%CONTROL
+subplot(2, 1, 2)
+hold on
+plot(timepoints, control_smooth_s(:, 1:52), Color = [0,0,0,0.5]);
+%ylim([0,25000])
+xlim([11, 41])
+for i = 1:numel(significant_time_points(1:52))
+    diff = rate_control(i) - rate_test(i);
+    if diff > 0 && significant_time_points(i) > 0 
+        col = 'g';
+        x = plot([(i) * significant_time_points(i), (i) * significant_time_points(i)], ylim, '-', 'LineWidth', 3, color = col);
+        x.Color(4) = 0.2;
+    elseif diff < 0 && significant_time_points(i) > 0 
+        col = 'b';
+        x = plot([(i) * significant_time_points(i), (i) * significant_time_points(i)], ylim, '-', 'LineWidth', 3, color = col);
+        x.Color(4) = 0.2;
+    elseif diff == 0 && significant_time_points(i) > 0 
+        col = 'r';
+        x = plot([(i) * significant_time_points(i), (i) * significant_time_points(i)], ylim, '-', 'LineWidth', 3, color = col);
+        x.Color(4) = 0.2;  
+    end  
+end
+plot(timepoints, rate_control, color = 'red', LineWidth=3)
+hold off
+title('Control Group');
+ylabel('Steps (in 10,000s)')
+xlabel('Time (Weeks)');
+% xticks(times)
+xtickangle(90)
+ax = gca;
+ax.FontSize = 8;
+
+annotation('textbox', [0.8, 0.45, 0.1, 0.1], 'String', sprintf('Significant Time Point Highlight\nGreen Highlights: Control Steps > Complication Steps\nBlue Highlights: Control Steps < Complication Steps'), 'HorizontalAlignment', 'center', 'FontSize', 12);
