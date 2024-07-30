@@ -4,15 +4,15 @@ data = readtable("C:\Users\alexb\Downloads\DP3_playset.csv");
 
 
 
-% Find rows containing NaN values in the numeric column
-nanRowsNumeric = isnat(data.fitbit_data_date);
-
-
-clean = data(~nanRowsNumeric, :);
-
-nanTimePoints = isnan(clean.timepoint);
-
-clean = clean(~nanTimePoints, :);
+% % Find rows containing NaN values in the numeric column
+% nanRowsNumeric = isnat(data.fitbit_data_date);
+% 
+% 
+% clean = data(~nanRowsNumeric, :);
+% 
+nanTimePoints = isnan(data.timepoint);
+% 
+clean = data(~nanTimePoints, :);
 %% Clean data
 timepoints = 1:1:365; %in days
 
@@ -23,10 +23,10 @@ uniques_control = unique(control_data.record_id);
 uniques_test = unique(test_data.record_id);
 
 
-test_steps = zeros(length(uniques_test), 365);
-control_steps = zeros(length(uniques_control), 365);
-test_dist = zeros(length(uniques_test), 365);
-control_dist = zeros(length(uniques_control), 365);
+test_steps = nan(length(uniques_test), 365);
+control_steps = nan(length(uniques_control), 365);
+test_dist = nan(length(uniques_test), 365);
+control_dist = nan(length(uniques_control), 365);
 
 control = cell(numel(uniques_control), 1); % Initialize cell arrays to store the columns for each record ID
 test = cell(numel(uniques_test), 1);
@@ -233,3 +233,66 @@ ax = gca;
 ax.FontSize = 8;
 
 annotation('textbox', [0.8, 0.45, 0.1, 0.1], 'String', sprintf('Significant Time Point Highlight\nGreen Highlights: Control Steps > Complication Steps\nBlue Highlights: Control Steps < Complication Steps'), 'HorizontalAlignment', 'center', 'FontSize', 12);
+
+
+%%
+% Loop through each subject
+behave_test = cell(size(test_weekly_s, 1), 1);
+behave_control = cell(size(control_weekly_s, 1), 1);
+for i = 1:37
+    % Calculate the autocorrelation for the time series of subject i
+    [acf_t, lags_t] = autocorr(test_weekly_s(i, :), 'NumLags', 20);
+    if i < 37
+        [acf_c, lags_c] = autocorr(control_weekly_s(i, :), 'NumLags', 20);
+    end
+    % Determine if the subject's time series is cyclical based on the autocorrelation
+    if any(acf_t(2:end) > 0.85) % Example threshold, adjust as needed
+        behave_test{i} = 'Cyclical';
+    else
+        behave_test{i} = 'Non-Cyclical';
+    end
+    if any(acf_c(2:end) > 0.85) && i < 37% Example threshold, adjust as needed
+        behave_control{i} = 'Cyclical';
+    else
+        behave_control{i} = 'Non-Cyclical';
+    end
+end
+
+% Convert labels to a categorical variable
+% Find unique strings and their counts
+[uniqueStrings_c, ~, idx] = unique(behave_control);
+counts_c = histcounts(idx, 'BinMethod', 'integers', 'BinLimits', [1, numel(uniqueStrings_c)]);
+[uniqueStrings_t, ~, idx] = unique(behave_test);
+counts_t = histcounts(idx, 'BinMethod', 'integers', 'BinLimits', [1, numel(uniqueStrings_t)]);
+% Create the bar plot
+counts = [counts_c; counts_t]';
+names = {'Control' 'Complication'};
+figure;
+b = bar(counts);
+colors = [
+    0, 1, 0; % Green
+    0, 1, 0; % Green
+    0, 0, 1; % Blue
+    0, 0, 1; % Blue
+];
+% Apply colors to each bar
+
+set(gca, 'XTickLabel', names, 'XTick', 1:2)
+xlabel('Categories');
+ylabel('Counts');
+title('Bar Plot of Step Behavior');
+legend('Cyclical', 'Consistent')
+
+%%
+
+
+%% ADF Test
+
+function pValues = check_stationarity(group)
+    pValues = zeros(size(group, 1), 1);
+    for i = 1:size(group, 1)
+        [~, pValue] = adftest(group(i, :));
+        pValues(i) = pValue;
+    end
+end
+
