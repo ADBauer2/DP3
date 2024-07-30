@@ -283,8 +283,37 @@ ylabel('Counts');
 title('Bar Plot of Step Behavior');
 legend('Cyclical', 'Consistent')
 
-%%
+%% Time to dropout
 
+transitionIndices_c = cell(size(control_weekly_s, 1), 1);
+
+% Loop through each row
+for i = 1:size(control_weekly_s, 1)
+    row = control_weekly_s(i, :);
+    % Find where the transition from a non-zero number to zero occurs
+    indices = find(row(1:end-2) ~= 0 & row(2:end-1) == 0 & row(3:end) == 0) + 1;
+    % Store the indices
+    if isempty(indices)
+        transitionIndices_c{i} = indices;
+    else
+        transitionIndices_c{i} = indices(1, end);
+    end
+end
+
+transitionIndices_t = cell(size(control_weekly_s, 1), 1);
+
+% Loop through each row
+for i = 1:size(test_weekly_s, 1)
+    row = test_weekly_s(i, :);
+    % Find where the transition from a non-zero number to zero occurs
+    indices = find(row(1:end-2) ~= 0 & row(2:end-1) == 0 & row(3:end) == 0) + 1;
+    % Store the indices
+    if isempty(indices)
+        transitionIndices_t{i} = indices;
+    else
+        transitionIndices_t{i} = indices(1, end);
+    end
+end
 
 %% ADF Test
 
