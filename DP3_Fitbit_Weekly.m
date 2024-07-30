@@ -294,7 +294,11 @@ for i = 1:size(control_weekly_s, 1)
     indices = find(row(1:end-2) ~= 0 & row(2:end-1) == 0 & row(3:end) == 0) + 1;
     % Store the indices
     if isempty(indices)
-        transitionIndices_c{i} = indices;
+        if sum(row) > 0
+            transitionIndices_c{i} = 52;
+        else
+            transitionIndices_c{i} = NaN;
+        end
     else
         transitionIndices_c{i} = indices(1, end);
     end
@@ -309,12 +313,21 @@ for i = 1:size(test_weekly_s, 1)
     indices = find(row(1:end-2) ~= 0 & row(2:end-1) == 0 & row(3:end) == 0) + 1;
     % Store the indices
     if isempty(indices)
-        transitionIndices_t{i} = indices;
+        if sum(row) > 0
+            transitionIndices_t{i} = 52;
+        else
+            transitionIndices_t{i} = NaN;
+        end
     else
         transitionIndices_t{i} = indices(1, end);
     end
 end
 
+transitionIndices_t = cell2mat(transitionIndices_t);
+transitionIndices_c = cell2mat(transitionIndices_c);
+[h, p] = ttest2(transitionIndices_c, transitionIndices_t);
+disp(h)
+disp(p)
 %% ADF Test
 
 function pValues = check_stationarity(group)
