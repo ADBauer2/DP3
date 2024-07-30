@@ -330,12 +330,30 @@ disp(h)
 disp(p)
 
 %% Look at averages between points on quarters and trimesters
-trimester_points = linspace(0, 52, 3);
-quarter_points = linspace(0, 52, 4);
+trimester_points = round(linspace(0, 40, 4));
+quarter_points = round(linspace(0, 40, 5));
 
 timesplits = unique(sort([trimester_points, quarter_points]));
+% Define smaller matricies - 5 segments
+% 1 : 0- 10 weeks
+% 2 : 10 - 13 weeks
+% 3 : 13 - 20 weeks
+% 4 : 20 - 27 weeks
+% 5 : 27 - 30 weeks
+% 6 : 30 - 40 weeks
+test_1 = test_weekly_s(:, (timesplits(1, 1) + 1):timesplits(1, 2));
+test_2 = test_weekly_s(:, timesplits(1, 2):timesplits(1, 3));
+test_3 = test_weekly_s(:, timesplits(1, 3):timesplits(1, 4));
+test_4 = test_weekly_s(:, timesplits(1, 4):timesplits(1, 5));
+test_5 = test_weekly_s(:, timesplits(1, 5):timesplits(1, 6));
+test_6 = test_weekly_s(:, timesplits(1, 6):timesplits(1, 7));
 
-
+control_1 = control_weekly_s(:, (timesplits(1, 1) + 1):timesplits(1, 2));
+control_2 = control_weekly_s(:, timesplits(1, 2):timesplits(1, 3));
+control_3 = control_weekly_s(:, timesplits(1, 3):timesplits(1, 4));
+control_4 = control_weekly_s(:, timesplits(1, 4):timesplits(1, 5));
+control_5 = control_weekly_s(:, timesplits(1, 5):timesplits(1, 6));
+control_6 = control_weekly_s(:, timesplits(1, 6):timesplits(1, 7));
 
 %% ADF Test
 
