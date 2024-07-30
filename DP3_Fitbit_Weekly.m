@@ -328,6 +328,15 @@ transitionIndices_c = cell2mat(transitionIndices_c);
 [h, p] = ttest2(transitionIndices_c, transitionIndices_t);
 disp(h)
 disp(p)
+
+%% Look at averages between points on quarters and trimesters
+trimester_points = linspace(0, 52, 3);
+quarter_points = linspace(0, 52, 4);
+
+timesplits = unique(sort([trimester_points, quarter_points]));
+
+
+
 %% ADF Test
 
 function pValues = check_stationarity(group)
