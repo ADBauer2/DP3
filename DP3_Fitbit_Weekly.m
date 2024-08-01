@@ -326,8 +326,18 @@ end
 transitionIndices_t = cell2mat(transitionIndices_t);
 transitionIndices_c = cell2mat(transitionIndices_c);
 [h, p] = ttest2(transitionIndices_c, transitionIndices_t);
+disp("Reject Null Hypothesis? 1/0")
 disp(h)
+disp("P-Val")
 disp(p)
+disp("Mean Time-to-Drop (weeks) Control Group:")
+disp(mean(transitionIndices_c, "omitmissing"))
+disp("Difference (Control-Test) in Mean Time-to-Drop (weeks):")
+disp(mean(transitionIndices_c, "omitmissing") - mean(transitionIndices_t, "omitmissing"))
+disp("Median Time-to-Drop (weeks) Control Group:")
+disp(median(transitionIndices_c, "omitmissing"))
+disp("Difference (Control-Test) in Median Time-to-Drop (weeks):")
+disp(median(transitionIndices_c, "omitmissing") - median(transitionIndices_t, "omitmissing"))
 
 %% Look at averages between points on quarters and trimesters
 trimester_points = round(linspace(0, 40, 4));
