@@ -344,7 +344,7 @@ trimester_points = round(linspace(0, 40, 4));
 quarter_points = round(linspace(0, 40, 5));
 
 timesplits = unique(sort([trimester_points, quarter_points]));
-% Define smaller matricies - 5 segments
+% Define smaller matricies - 6 segments
 % 1 : 0- 10 weeks
 % 2 : 10 - 13 weeks
 % 3 : 13 - 20 weeks
@@ -365,6 +365,86 @@ control_4 = control_weekly_s(:, timesplits(1, 4):timesplits(1, 5));
 control_5 = control_weekly_s(:, timesplits(1, 5):timesplits(1, 6));
 control_6 = control_weekly_s(:, timesplits(1, 6):timesplits(1, 7));
 
+midpoints = [];
+
+for i = 1:6
+    value = timesplits(i) + (( timesplits(i+1) - timesplits(i) )/2);
+    midpoints = [midpoints, value];
+end
+
+%% compare mean trends at each timepoint
+varnames_t = {'test_1','test_2','test_3','test_4','test_5','test_6'};
+varnames_c = {'control_1','control_2','control_3','control_4','control_5','control_6'};
+mean_t = [];
+mean_c = [];
+median_t = [];
+median_c = [];
+for i = 1:6
+    var_t = varnames_t{i};
+    var_c = varnames_c{i};
+
+    mean_t = [mean_t, mean(eval(var_t), "all", "omitmissing")];
+    mean_c = [mean_c, mean(eval(var_c), "all", "omitmissing")];
+    median_t = [median_t, median(eval(var_t), "all", "omitmissing")];
+    median_c = [median_c, median(eval(var_c), "all", "omitmissing")];
+end
+
+
+% Make median lines
+med_control = median(control_weekly_s, 1, "omitmissing");
+med_test = median(test_weekly_s, 1, "omitmissing");
+% Plot
+figure;
+% Mean
+subplot(2, 1, 1);
+hold on;
+xlim([0, 40])
+ylim([-4000, 45000])
+title('Mean Steps in Tri/Quarters')
+%Trimesters
+ area([0, 13], [-4000, -4000])
+ area([13, 27], [-4000, -4000])
+ area([27, 40], [-4000, -4000])
+ newcolors = [252/256 3/256 152/256; 252/256 3/256 219/256;
+     186/256 3/256 252/256; 252/256 3/256 152/256; 252/256 3/256 219/256; 
+     186/256 3/256 252/256; 115/256 3/256 252/256];
+ colororder(newcolors)
+%Quarters
+ area([0, 10], [-2000, -2000])
+ area([10, 20], [-2000, -2000])
+ area([20, 30], [-2000, -2000])
+ area([30, 40], [-2000, -2000])
+plot(midpoints, mean_c, color = 'Green', linewidth = 3);
+plot(midpoints, mean_t, color = 'Blue', linewidth = 3);
+plot(1:52, rate_control, 'g--', linewidth = 3);
+plot(1:52, rate_test, 'b--', linewidth= 3)
+% Median
+subplot(2, 1, 2);
+hold on;
+title("Median Steps in Tri/Quarters")
+xlim([0, 40])
+ylim([-4000, 45000])
+%Trimesters
+ area([0, 13], [-4000, -4000])
+ area([13, 27], [-4000, -4000])
+ area([27, 40], [-4000, -4000])
+ newcolors = [252/256 3/256 152/256; 252/256 3/256 219/256;
+     186/256 3/256 252/256; 252/256 3/256 152/256; 252/256 3/256 219/256; 
+     186/256 3/256 252/256; 115/256 3/256 252/256];
+ colororder(newcolors)
+%Quarters
+ area([0, 10], [-2000, -2000])
+ area([10, 20], [-2000, -2000])
+ area([20, 30], [-2000, -2000])
+ area([30, 40], [-2000, -2000])
+plot(midpoints, median_c, color = 'Green', linewidth = 3);
+plot(midpoints, median_t, color = 'Blue', linewidth = 3);
+plot(1:52, med_test, 'b--', linewidth = 3);
+plot(1:52, med_control, 'g--', linewidth = 3);
+
+%%
+% Binary on drop period 2-30-36
+%redo means and medians
 %% ADF Test
 
 function pValues = check_stationarity(group)
