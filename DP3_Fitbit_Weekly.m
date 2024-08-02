@@ -444,7 +444,19 @@ plot(1:52, med_control, 'g--', linewidth = 3);
 
 %%
 % Binary on drop period 2-30-36
-%redo means and medians
+% redo means and medians
+%% Length at peak
+peak_indicies_c = cell(size(control_weekly_s, 1), 1);
+
+for i = 1:size(control_weekly_s, 1)
+    
+    subject= control_weekly_s(i, 16:52);
+    subject = subject - subject(1, 1);
+    % Find where the transition from a non-zero number to zero occurs
+    indices = find(subject(1:end-2) >= 0 & subject(2:end-1) < -5000 & subject(3:end) < -5000) + 1;
+    peak_indicies_c{i} = indices;
+end
+
 %% ADF Test
 
 function pValues = check_stationarity(group)
