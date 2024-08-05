@@ -1,6 +1,6 @@
 %% Load Data
 
-data = readtable("C:\Users\alexb\Downloads\DP3_playset.csv");
+data = readtable("/Users/alexbauer/Documents/DP3/DP3_playset.csv");
 
 
 
@@ -453,8 +453,21 @@ for i = 1:size(control_weekly_s, 1)
     subject= control_weekly_s(i, 16:52);
     subject = subject - subject(1, 1);
     % Find where the transition from a non-zero number to zero occurs
-    indices = find(subject(1:end-2) >= 0 & subject(2:end-1) < -5000 & subject(3:end) < -5000) + 1;
-    peak_indicies_c{i} = indices;
+    indices = find(subject(1:end-2) >= 0 & subject(2:end-1) < -5000 & subject(3:end) < -5000) +1 - 2;
+    % if length(indices) > 1
+    %     dist = [];
+    %     start = 0;
+    %     for j = 1:length(indices)
+    %         dist = [dist, start + indices(1,j)];
+    %         start = start + indices(1, j);
+    %     end
+    %     indices = mean(dist);
+    % end
+    if isempty(indices)
+        peak_indicies_c{i} = 52-16;
+    else
+        peak_indicies_c{i} = indices;
+    end
 end
 
 %% ADF Test
