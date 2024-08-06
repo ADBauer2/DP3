@@ -1,6 +1,6 @@
 %% Load Data
 
-data = readtable("C:\Users\alexb\Downloads\DP3_playset.csv");
+data = readtable("/Users/alexbauer/Documents/DP3/DP3_playset.csv");
 
 
 
@@ -387,24 +387,24 @@ for i = 1:size(control_dist, 1)
     sim_dist = [sim_dist, dtw(normalize(control_dist(i, :)), normalize(test_dist(i, :)))];
 end
 
-%%
-   %% CAUSES ERRORS NEED TO COME BACK
+%% Osscilation
+
 % Loop through each subject
-behave_test = cell(size(test_weekly_s, 1), 1);
-behave_control = cell(size(control_weekly_s, 1), 1);
-for i = 1:37
+behave_test = cell(size(test_steps, 1), 1);
+behave_control = cell(size(control_steps, 1), 1);
+for i = 1:36
     % Calculate the autocorrelation for the time series of subject i
-    [acf_t, lags_t] = autocorr(test_weekly_s(i, :), 'NumLags', 20);
+    [acf_t, lags_t] = autocorr(test_steps(i, :), 'NumLags', 20);
     if i < 37
-        [acf_c, lags_c] = autocorr(control_weekly_s(i, :), 'NumLags', 20);
+        [acf_c, lags_c] = autocorr(control_steps(i, :), 'NumLags', 20);
     end
     % Determine if the subject's time series is cyclical based on the autocorrelation
-    if any(acf_t(2:end) > 0.85) % Example threshold, adjust as needed
+    if any(acf_t(2:end) > 0.7) % Example threshold, adjust as needed
         behave_test{i} = 'Cyclical';
     else
         behave_test{i} = 'Non-Cyclical';
     end
-    if any(acf_c(2:end) > 0.85) && i < 37% Example threshold, adjust as needed
+    if any(acf_c(2:end) > 0.7) && i < 37% Example threshold, adjust as needed
         behave_control{i} = 'Cyclical';
     else
         behave_control{i} = 'Non-Cyclical';
@@ -419,7 +419,7 @@ counts_c = histcounts(idx, 'BinMethod', 'integers', 'BinLimits', [1, numel(uniqu
 counts_t = histcounts(idx, 'BinMethod', 'integers', 'BinLimits', [1, numel(uniqueStrings_t)]);
 % Create the bar plot
 counts = [counts_c; counts_t]';
-names = {'Control' 'Complication'};
+names = {'Consistent' 'Cyclical'};
 figure;
 b = bar(counts);
 colors = [
@@ -434,7 +434,17 @@ set(gca, 'XTickLabel', names, 'XTick', 1:2)
 xlabel('Categories');
 ylabel('Counts');
 title('Bar Plot of Step Behavior');
-legend('Cyclical', 'Consistent')
+legend('Control', 'Complication')
+
+
+%% Ttest on osscilation
+binaryMatrix_c = zeros(size(behave_control, 2)); 
+binaryMatrix_c(strcmp(behave_control, "Cyclical")) = 1;
+binaryMatrix_t = zeros(size(behave_test, 2)); 
+binaryMatrix_t(strcmp(behave_test, "Cyclical")) = 1;
+[h, p] = ttest2(binaryMatrix_c, binaryMatrix_t);
+disp(h)
+disp(p)
 %% ADF Test
 
 function pValues = check_stationarity(group)
