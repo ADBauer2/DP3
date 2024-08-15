@@ -443,7 +443,9 @@ binaryMatrix_c(strcmp(behave_control, "Cyclical")) = 1;
 binaryMatrix_t = zeros(size(behave_test, 2)); 
 binaryMatrix_t(strcmp(behave_test, "Cyclical")) = 1;
 [h, p] = ttest2(binaryMatrix_c, binaryMatrix_t);
+disp("Reject Null Hypothesis?")
 disp(h)
+disp("p-value")
 disp(p)
 %% ADF Test
 
